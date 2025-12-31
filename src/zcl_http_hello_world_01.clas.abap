@@ -20,7 +20,7 @@ CLASS zcl_http_hello_world_01 IMPLEMENTATION.
     response->set_header_field( i_name = 'Content-Type' i_value = 'text/html' ).
 
     " ブラウザに表示するHTMLボディの設定
-    response->set_text( '<h1>Hello World from BTP Web!</h1>' ).
+    response->set_text( '<h1>Hello World from BTP Web!Git Hub Chane</h1>' ).
 
   ENDMETHOD.
 ENDCLASS.
