@@ -3,13 +3,10 @@
 {
 "FROM":
 [
-"ZDB_TKG_EMPL"
+"ZDB_TKG_CONT"
 ],
 "ASSOCIATED":
-[
-"ZI_TKG_ADDR",
-"ZI_TKG_CONT"
-],
+[],
 "BASE":
 [],
 "ANNO_REF":

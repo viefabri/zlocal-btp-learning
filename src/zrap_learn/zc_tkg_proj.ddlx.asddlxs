@@ -1,0 +1,39 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: { title: {  value: 'Projid' },
+                  description: {  value: 'ProjectName' }
+                  }
+annotate entity ZC_TKG_PROJ
+    with 
+{
+//Project Info
+@UI.facet: [{ position: 10, label: 'Basic Info', type: #IDENTIFICATION_REFERENCE  },
+            { position: 20, label: 'Skill Info', type: #LINEITEM_REFERENCE, targetElement: '_skill'}]
+@UI.lineItem: [{ position:10 }]
+@UI.identification: [{ position:10 }]
+@EndUserText: { label: 'Employee ID', quickInfo: 'Employee Number' }
+  Emplid;
+  @UI.lineItem: [{ position:20 }]
+  @UI.identification: [{ position:20 }]
+  @EndUserText: { label: 'Project ID', quickInfo: 'Project Assigned to resource' }
+  Projid;
+  @UI.lineItem: [{ position:30 }]
+  @UI.identification: [{ position:30 }]
+  @EndUserText: { label: 'Project Name', quickInfo: 'Name of Project assigned to user' }
+  ProjectName;
+  @UI.lineItem: [{ position:40, criticality: 'ProjectCriticality' }]
+  @UI.identification: [{ position:40 }]
+  @EndUserText: { label: 'Project Type', quickInfo: 'Type of Project' }
+  @UI.textArrangement: #TEXT_ONLY
+  ProjectType;
+  @UI.lineItem: [{ position:50 }]
+  @UI.identification: [{ position:50 }]
+  @EndUserText: { label: 'Is Current?', quickInfo: 'Is this the current project' }
+  IsCurrent;
+  @UI.lineItem: [{ position:60 }]
+  @UI.identification: [{ position:60 }]
+  @EndUserText: { label: 'Durtation?', quickInfo: 'For how long resource is in this project' }
+  Duration;
+  /* Associations */
+ // _empl;
+    
+}

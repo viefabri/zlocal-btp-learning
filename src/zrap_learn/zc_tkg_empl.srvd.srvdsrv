@@ -1,0 +1,6 @@
+@EndUserText.label: 'Service Definition - Empl Basic Info'
+define service ZC_TKG_EMPL {
+  expose ZC_TKG_EMPL;
+  expose ZC_TKG_PROJ;
+  expose ZC_TKG_SKILL;
+}

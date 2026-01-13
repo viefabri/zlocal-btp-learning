@@ -1,4 +1,4 @@
-interface ZCL_IF_HELLO_WORLD_01
-  public .
+INTERFACE zcl_if_hello_world_01
+  PUBLIC .
 
-endinterface.
+ENDINTERFACE.

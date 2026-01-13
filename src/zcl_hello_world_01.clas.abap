@@ -1,14 +1,14 @@
-class ZCL_HELLO_WORLD_01 definition
-  public
-  final
-  create public .
+CLASS zcl_hello_world_01 DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
-protected section.
-private section.
+  PUBLIC SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS ZCL_HELLO_WORLD_01 IMPLEMENTATION.
+CLASS zcl_hello_world_01 IMPLEMENTATION.
 ENDCLASS.

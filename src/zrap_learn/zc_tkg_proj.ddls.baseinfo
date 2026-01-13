@@ -3,12 +3,12 @@
 {
 "FROM":
 [
-"ZDB_TKG_EMPL"
+"ZI_TKG_PROJ"
 ],
 "ASSOCIATED":
 [
-"ZI_TKG_ADDR",
-"ZI_TKG_CONT"
+"ZC_TKG_EMPL",
+"ZC_TKG_SKILL"
 ],
 "BASE":
 [],
