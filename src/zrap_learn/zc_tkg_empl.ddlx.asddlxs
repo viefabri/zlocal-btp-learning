@@ -20,6 +20,9 @@ annotate entity ZC_TKG_EMPL
            
            { position:10, purpose: #HEADER, type: #DATAPOINT_REFERENCE, targetQualifier: '_HDR_1' },
            { position:20, purpose: #HEADER, type: #DATAPOINT_REFERENCE, targetQualifier: '_HDR_2' }]
+           
+   @UI.lineItem: [{ position: 5  }]        
+           CountryLogoUrl;
 @UI.lineItem: [{ position:10, cssDefault.width: '10rem' }]
 //@UI.selectionField: [{ position:10 }]
 @EndUserText: {  label: 'Employee No.', quickInfo: 'Employee Number as per records' }
@@ -86,10 +89,11 @@ annotate entity ZC_TKG_EMPL
   @EndUserText: { label: 'Country', quickInfo: 'Country'}
     @UI.dataPoint: { qualifier: '_HDR_2', title: 'Country' }
     @UI.selectionField: [{position: 40 }]
-    @UI.lineItem: [{ position: 60 }]
+    @UI.lineItem: [{ position: 60, type: #WITH_URL, url: 'CountryWebLink'  }]
    // @Consumption.valueHelpDefinition: [{ entity: { name: 'I_COUNTRYVH', element: 'Country' } }]
     @Consumption.valueHelpDefinition: [{ entity: { name: 'ZI_COUNTRY_VH', element: 'Country' } }]
     @UI.textArrangement: #TEXT_LAST
+    
   Country; 
   
 }

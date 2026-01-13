@@ -25,6 +25,9 @@ composition [1..*] of ZC_TKG_PROJ as _proj
   @ObjectModel.text.element: [ 'CountryText' ]
   _addr.Country,
   _addr.CountryText,
+  @Semantics.imageUrl: true
+  _addr.CountryLogoUrl,
+  _addr.CountryWebLink,
   
   _proj
   }
