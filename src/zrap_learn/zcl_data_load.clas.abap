@@ -13,19 +13,14 @@ ENDCLASS.
 CLASS zcl_data_load IMPLEMENTATION.
 Method if_oo_adt_classrun~main.
 
-DATA lt_data TYPE TABLE OF zdb_tkg_country.
-
-lt_data = value #(
-( client = '100'
-  country = 'AU'
-  logo_url = 'https://hampusborgos.github.io/country-flags/'
-   )
-).
-INSERT zdb_tkg_country FROM TABLE @lt_data.
+Delete from ZDB_TKG_EMPL where emplid = '   1'.
+if sy-subrc = 0.
+out->write( 'Employee record deleted successfuly' ).
 commit work.
-out->write( 'Country data uploaded successfully' ).
+else.
+out->write( 'Record not found' ).
 
-
+endif.
 ENDMETHOD.
 
 ENDCLASS.

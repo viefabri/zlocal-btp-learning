@@ -6,7 +6,9 @@
 "ZEMPLOYEE_001"
 ],
 "ASSOCIATED":
-[],
+[
+"ZI_DEPARTMENT_001"
+],
 "BASE":
 [],
 "ANNO_REF":

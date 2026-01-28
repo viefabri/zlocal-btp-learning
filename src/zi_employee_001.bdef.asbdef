@@ -1,0 +1,44 @@
+managed implementation in class zbp_i_employee_001 unique;
+strict ( 2 );
+
+/* ドラフト機能 (一時保存) の有効化 */
+with draft;
+
+define behavior for ZI_EMPLOYEE_001 alias Employee
+persistent table zemployee_001
+draft table zemployee_d_001   // ドラフトデータ保存用テーブル
+lock master
+total etag LastChangedAt      // ETag (排他制御) 用のタイムスタンプ項目
+authorization master ( instance )
+{
+  /* 標準CRUD操作の有効化 */
+  create; //警告は権限関連。今回はスキップ
+  update;
+  delete;
+
+  /* ドラフト固有のアクション定義 */
+  draft action Edit;
+  draft action Activate optimized; // 下書きの有効化 (最適化有効)
+  draft action Discard;            // 下書きの破棄
+  draft action Resume;             // 中断からの再開
+  draft determine action Prepare;  // 保存前の検証
+
+  /* 項目制御: キー項目は更新不可 (作成時のみ入力可)
+     UUIDではないため自動採番 (numbering:managed) は使用しない */
+  field ( readonly : update ) EmployeeId;
+
+  /* マッピング定義 (論理名 = 物理名)
+     レガシーテーブルの物理項目名をCDSの論理項目名に紐付ける */
+  mapping for zemployee_001
+  {
+    EmployeeId    = emp_id;
+    FirstName     = first_name;
+    LastName      = last_name;
+    Email         = email;
+    DeptId        = dept_id;
+    JoinDate      = join_date;
+    Salary        = salary;
+    CurrencyCode  = currency_code;
+    LastChangedAt = last_changed_at;
+  }
+}

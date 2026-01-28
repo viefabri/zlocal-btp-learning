@@ -1,53 +1,55 @@
-/* [権限チェック] アクセス制御の設定
-   #NOT_REQUIRED: 学習用のため、権限チェックをスキップします。
-   実プロジェクトでは #CHECK を指定し、別途 DCL (Data Control Language) で
-   「会社コード1000の人だけ見れる」といった行レベルのアクセス制御を行います。
-*/
+/* [権限チェック] 学習用のためスキップ */
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 
-/* [ビューの説明] ABAPリポジトリ上の説明文 */
+/* [ビュー説明] */
 @EndUserText.label: '社員名簿 Interface View'
 
-/* [アノテーション継承の注意点]
-   @Metadata.ignorePropagatedAnnotations: true は **記述してはいけません**。
-   これを書くと、ここで定義した通貨設定(@Semantics...)が上位ビュー(ZC)に伝わらず、
-   金額表示エラーの原因になります。VDMでは「意味(Semantics)の継承」が重要です。
-*/
-
-/* [RAP定義] ビジネスオブジェクト (BO) のルート定義
-   define root: このビューが「ビジネスオブジェクトの親(Root)」であることを宣言します。
-   この宣言があるからこそ、上位(ZC)で Transactional 契約を結ぶことができます。
-   view entity: 従来の 'define view' (SE11 View作成) とは異なり、
-   CDS専用の高速なランタイムで動作する最新構文です。
+/* [RAP定義] BO Root定義
+   define root: Transactional動作の起点となる宣言
+   view entity: 新構文 (パフォーマンス・厳密性向上)
 */
 define root view entity ZI_EMPLOYEE_001
   as select from zemployee_001
-{
-  /* --- フィールドマッピング (物理名 → 論理名) --- */
-  
-  /* [キー項目] EmployeeId
-     物理名(emp_id)のようなスネークケースを、
-     論理名(EmployeeId)のようなキャメルケースに変換します。
-     Fiori/ODataの世界ではキャメルケースが標準規約です。
+
+  /* [Association] 部署マスタへの関連定義
+     [0..1]: カーディナリティ (0または1)
+     $projection: 自ビューの論理項目(DeptId)を使用
   */
+  association [0..1] to ZI_DEPARTMENT_001 as _Department on $projection.DeptId = _Department.DeptId
+{
+      /* --- フィールドマッピング (物理名 → 論理名) --- */
+
+      /* EmployeeId: キー項目 (CamelCaseへ変換) */
   key emp_id        as EmployeeId,
 
-  /* [データ項目] 名前、メールアドレス、入社日 */
+      /* 基本データ */
       first_name    as FirstName,
       last_name     as LastName,
       email         as Email,
+      
+      /* [FK] 外部キー (部署ID)
+         テーブル指定なしのためメイン (zemployee_001) の項目を採用
+      */
+      dept_id       as DeptId,
+      
       join_date     as JoinDate,
 
-  /* [意味的定義] 金額と通貨の紐付け
-     @Semantics.amount.currencyCode:
-     「この Salary という数値は、CurrencyCode という項目の単位に従う」という定義。
-     これをここで定義しておくことで、UI層、分析層、Excel出力など、
-     あらゆる利用シーンで「正しい金額」として扱われます。
-  */
+      /* [Semantics] 金額と通貨の紐付け
+         UIや分析で正しく通貨単位を扱うための定義
+      */
       @Semantics.amount.currencyCode: 'CurrencyCode'
       salary        as Salary,
+
+      /* 通貨コード */
+      currency_code as CurrencyCode,
       
-  /* [通貨コード] */
-      currency_code as CurrencyCode
+      /* タイムスタンプ */
+      @Semantics.systemDateTime.lastChangedAt: true
+      last_changed_at as LastChangedAt,
+
+      /* [Association公開]
+         上位 (Consumption View) やUIからのアクセスを許可
+      */
+      _Department
 
 }
