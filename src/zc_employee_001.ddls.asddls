@@ -1,5 +1,5 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
-@EndUserText.label: '社員管理'
+@EndUserText.label: '社員'
 
 @Metadata.allowExtensions: true
 @Search.searchable: true
@@ -54,7 +54,7 @@ define root view entity ZC_EMPLOYEE_001
       @UI.lineItem:       [{ position: 45 }]
       @UI.selectionField: [{ position: 40 }]
       @UI.identification: [{ position: 45 }]
-      @ObjectModel.text.element: ['DeptName']
+      @ObjectModel.text.element: ['DeptName']   // IDの代わりに名称を表示
       @Consumption.valueHelpDefinition: [{ entity : { name: 'ZI_DEPARTMENT_001', element: 'DeptId' } }]
       /* ラベル追加 */
       @EndUserText.label: '部署'

@@ -1,4 +1,4 @@
-//@AbapCatalog.viewEnhancementCategory: [#NONE]   //拡張許可のためコメント化
+@AbapCatalog.viewEnhancementCategory: [#PROJECTION_LIST] //拡張許可
 @AccessControl.authorizationCheck: #NOT_REQUIRED  // 権限チェック
 @EndUserText.label: '部署'                        //テキスト
 @Metadata.ignorePropagatedAnnotations: false      //メタデータを引き継ぐ

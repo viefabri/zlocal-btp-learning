@@ -5,7 +5,7 @@
    <DDLS>
     <DDLNAME>ZI_DEPARTMENT_001</DDLNAME>
     <DDLANGUAGE>J</DDLANGUAGE>
-    <DDTEXT>部署 Interface View</DDTEXT>
+    <DDTEXT>部署 (入力支援)</DDTEXT>
     <SOURCE_TYPE>W</SOURCE_TYPE>
    </DDLS>
   </asx:values>

@@ -5,7 +5,7 @@
    <DDLS>
     <DDLNAME>ZC_EMPLOYEE_001</DDLNAME>
     <DDLANGUAGE>J</DDLANGUAGE>
-    <DDTEXT>社員情報～VDM Consumption View～</DDTEXT>
+    <DDTEXT>社員 (Projection View)</DDTEXT>
     <SOURCE_TYPE>P</SOURCE_TYPE>
    </DDLS>
   </asx:values>
