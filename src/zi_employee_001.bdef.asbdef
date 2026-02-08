@@ -1,44 +1,76 @@
 managed implementation in class zbp_i_employee_001 unique;
 //strict ( 2 ); // 権限設定を省略するため、意図的にStrict Modeを下げています (本来は2推奨)
 
-/* ドラフト機能 (一時保存) の有効化 */
 with draft;
 
 define behavior for ZI_EMPLOYEE_001 alias Employee
 persistent table zemployee_001
-draft table zemployee_d_001   // ドラフトデータ保存用テーブル
+draft table zemployee_d_001
 lock master
-total etag LastChangedAt      // ETag (排他制御) 用のタイムスタンプ項目
-// authorization master ( instance ) // 権限チェックは本記事のスコープ外のため無効化
+total etag LastChangedAt
+authorization master ( instance )
+etag master LocalLastChangedAt // インスタンスごとの排他制御 (追加推奨)
 {
-  /* 標準CRUD操作の有効化 */
-  create; //警告は権限関連。今回はスキップ
+  create;
   update;
   delete;
 
-  /* ドラフト固有のアクション定義 */
   draft action Edit;
-  draft action Activate optimized; // 下書きの有効化 (最適化有効)
-  draft action Discard;            // 下書きの破棄
-  draft action Resume;             // 中断からの再開
-  draft determine action Prepare;  // 保存前の検証
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Resume;
 
-  /* 項目制御: キー項目は更新不可 (作成時のみ入力可)
-     UUIDではないため自動採番 (numbering:managed) は使用しない */
+  /* 保存前の検証 (ドラフト有効化時にValidationを実行) */
+  draft determine action Prepare
+  {
+    validation validateStatus;
+    validation validateSalary;
+    validation validateJoinDate;
+  }
+
+  /* --- 項目制御 --- */
+
+  /* キー項目: 更新不可 */
   field ( readonly : update ) EmployeeId;
 
-  /* マッピング定義 (論理名 = 物理名)
-     レガシーテーブルの物理項目名をCDSの論理項目名に紐付ける */
+  /* 管理項目 & 参照項目:
+     システム自動設定または外部結合項目のため、常に読取専用かつマッピング不要と宣言 */
+  field ( readonly )
+    CreatedBy,
+    CreatedAt,
+    LastChangedBy,
+    LocalLastChangedAt,
+    LastChangedAt,
+    StatusText;
+
+  /* --- ロジック定義 (Step 3-1) --- */
+
+  /* 初期値設定 (作成時) */
+  determination initStatus on modify { create; }
+
+  /* 入力検証 (保存時) */
+  validation validateStatus on save { field Status; create; update; }
+  validation validateSalary on save { field Salary; create; update; }
+  validation validateJoinDate on save { field JoinDate; create; update; }
+
+  /* --- マッピング定義 --- */
   mapping for zemployee_001
   {
-    EmployeeId    = emp_id;
-    FirstName     = first_name;
-    LastName      = last_name;
-    Email         = email;
-    DeptId        = dept_id;
-    JoinDate      = join_date;
-    Salary        = salary;
-    CurrencyCode  = currency_code;
-    LastChangedAt = last_changed_at;
+    EmployeeId         = emp_id;
+    FirstName          = first_name;
+    LastName           = last_name;
+    Email              = email;
+    DeptId             = dept_id;
+    JoinDate           = join_date;
+    Salary             = salary;
+    CurrencyCode       = currency_code;
+
+    /* 追加項目マッピング */
+    Status             = status;
+    CreatedBy          = created_by;
+    CreatedAt          = created_at;
+    LastChangedBy      = last_changed_by;
+    LocalLastChangedAt = local_last_changed_at;
+    LastChangedAt      = last_changed_at;
   }
 }
