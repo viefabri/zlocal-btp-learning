@@ -13,21 +13,25 @@ ABAP RESTful Application Programming Model (RAP) の基礎を学ぶための実�
 graph TD
     %% Service Layer
     subgraph Service Layer
-        ZUI[ZUI_EMPLOYEE_001<br/>(Service Definition)]
+        ZUI["ZUI_EMPLOYEE_001<br/>(Service Definition)"]
     end
 
     %% Projection Layer
     subgraph Projection Layer
-        ZC[ZC_EMPLOYEE_001<br/>(Consumption View)]
+        ZC["ZC_EMPLOYEE_001<br/>(Consumption View)"]
     end
 
-    %% Interface Layer & Behavior
-    subgraph Interface Layer & Behavior
-        ZI[ZI_EMPLOYEE_001<br/>(Interface View)]
-        Behavior[zbp_i_employee_001<br/>(Behavior Implementation)]
+    %% Interface Layer
+    subgraph Interface Layer
+        ZI["ZI_EMPLOYEE_001<br/>(Interface View)"]
         
-        ZI_DEPT[ZI_DEPARTMENT_001<br/>(Value Help)]
-        ZI_STATUS[ZI_STATUS_VH_001<br/>(Value Help)]
+        ZI_DEPT["ZI_DEPARTMENT_001<br/>(Value Help)"]
+        ZI_STATUS["ZI_STATUS_VH_001<br/>(Value Help)"]
+    end
+
+    %% Behavior Layer
+    subgraph Behavior Layer
+        Behavior["zbp_i_employee_001<br/>(Behavior Implementation)"]
     end
 
     %% Database Layer
