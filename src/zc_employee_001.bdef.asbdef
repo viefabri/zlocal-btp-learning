@@ -1,5 +1,5 @@
 projection;
-strict ( 2 );
+//strict ( 2 ); // 権限設定を省略するため、意図的にStrict Modeを下げています (本来は2推奨)
 use draft;
 
 define behavior for ZC_EMPLOYEE_001 alias Employee

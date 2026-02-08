@@ -1,5 +1,5 @@
 managed implementation in class zbp_i_employee_001 unique;
-strict ( 2 );
+//strict ( 2 ); // 権限設定を省略するため、意図的にStrict Modeを下げています (本来は2推奨)
 
 /* ドラフト機能 (一時保存) の有効化 */
 with draft;
@@ -9,7 +9,7 @@ persistent table zemployee_001
 draft table zemployee_d_001   // ドラフトデータ保存用テーブル
 lock master
 total etag LastChangedAt      // ETag (排他制御) 用のタイムスタンプ項目
-authorization master ( instance )
+// authorization master ( instance ) // 権限チェックは本記事のスコープ外のため無効化
 {
   /* 標準CRUD操作の有効化 */
   create; //警告は権限関連。今回はスキップ
