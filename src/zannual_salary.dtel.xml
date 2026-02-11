@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DD04V>
+    <ROLLNAME>ZANNUAL_SALARY</ROLLNAME>
+    <DDLANGUAGE>J</DDLANGUAGE>
+    <HEADLEN>55</HEADLEN>
+    <SCRLEN1>10</SCRLEN1>
+    <SCRLEN2>20</SCRLEN2>
+    <SCRLEN3>40</SCRLEN3>
+    <DDTEXT>年収</DDTEXT>
+    <REPTEXT>年収 (概算)</REPTEXT>
+    <SCRTEXT_S>年収 (概算)</SCRTEXT_S>
+    <SCRTEXT_M>年収 (概算)</SCRTEXT_M>
+    <SCRTEXT_L>年収 (概算)</SCRTEXT_L>
+    <DTELMASTER>J</DTELMASTER>
+    <DATATYPE>CURR</DATATYPE>
+    <LENG>000015</LENG>
+    <DECIMALS>000002</DECIMALS>
+    <OUTPUTLEN>000020</OUTPUTLEN>
+    <ABAP_LANGUAGE_VERSION>5</ABAP_LANGUAGE_VERSION>
+   </DD04V>
+  </asx:values>
+ </asx:abap>
+</abapGit>
