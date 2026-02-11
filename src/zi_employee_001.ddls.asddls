@@ -16,10 +16,16 @@ define root view entity ZI_EMPLOYEE_001
       last_name             as LastName,
       email                 as Email,
       dept_id               as DeptId,
+      emp_grade             as Grade,
       join_date             as JoinDate,
 
       @Semantics.amount.currencyCode: 'CurrencyCode'
       salary                as Salary,
+      
+/* --- 年収 (計算項目) --- */
+      @Semantics.amount.currencyCode: 'CurrencyCode'
+      cast( salary * 12 as zannual_salary ) as AnnualSalary,
+      
       currency_code         as CurrencyCode,
 
       /* --- ステータス --- */

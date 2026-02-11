@@ -79,7 +79,18 @@ define root view entity ZC_EMPLOYEE_001
       @UI.identification: [{ position: 60 }]
       Salary,
       
+/* --- 追加: 年収 (概算) --- */
+      @UI.lineItem:       [{ position: 65 }]
+      @UI.identification: [{ position: 65 }]
+      AnnualSalary,
+      
       CurrencyCode,
+      
+/* --- 追加: 給与ランク --- */
+      @UI.lineItem:       [{ position: 70 }]
+      @UI.identification: [{ position: 70 }]
+      @EndUserText.label: '給与ランク'
+      Grade,
       
       /* LastChangedAt */
       @UI.identification: [{ position: 99 }]
