@@ -13,4 +13,6 @@ define behavior for ZC_EMPLOYEE_001 alias Employee
   use action Discard;
   use action Resume;
   use action Prepare;
+
+  side effects { field Salary affects field Grade, field AnnualSalary; }
 }

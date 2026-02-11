@@ -22,9 +22,9 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
       END   OF lcs_status,
       lcf_jd_limit      TYPE i VALUE 730,                  "入社日チェック用 (2年)
       " --- ランク判定用の閾値と値 ---
-      lcf_salary_low    TYPE zemployee_001-salary VALUE 250000,
-      lcf_salary_middle TYPE zemployee_001-salary VALUE 300000,
-      lcf_salary_high   TYPE zemployee_001-salary VALUE 400000,
+      lcf_salary_low    TYPE zemployee_001-salary VALUE '2500.00',
+      lcf_salary_middle TYPE zemployee_001-salary VALUE '3000.00',
+      lcf_salary_high   TYPE zemployee_001-salary VALUE '4000.00',
 
       BEGIN OF lcs_grade,
         Expert TYPE zemployee_001-emp_grade VALUE 'A',
@@ -319,7 +319,7 @@ CLASS lhc_Employee IMPLEMENTATION.
       FIELDS ( Salary Grade ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
 
-
+    WAIT UP TO 5 SECONDS. " デバッガが追いつくための待機時間
 
     LOOP AT ldt_employees INTO lds_employee.
 
@@ -345,7 +345,7 @@ CLASS lhc_Employee IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
-    " 4. データベース(バッファ)の更新実行
+*   4. データベース(バッファ)の更新実行
     IF ldt_update IS NOT INITIAL.
       MODIFY ENTITIES OF zi_employee_001 IN LOCAL MODE
         ENTITY Employee
