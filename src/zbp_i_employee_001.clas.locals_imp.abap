@@ -311,19 +311,19 @@ CLASS lhc_Employee IMPLEMENTATION.
       ldt_employees  TYPE ltt_result_employees,
       lds_employee   TYPE lts_result_employees,
       ldf_state_area TYPE string VALUE lcs_state_area-joindate,
-      ldf_grade      TYPE zemployee_001-emp_grade.
+      ldf_grade      TYPE zemployee_001-emp_grade,
+      ldf_salary     type zemployee_001-salary.
 
 *   1. 対象データの読み込み (給与と現在のランクを取得)
     READ ENTITIES OF zi_employee_001 IN LOCAL MODE
       ENTITY Employee
-      FIELDS ( Salary Grade ) WITH CORRESPONDING #( keys )
+      FIELDS ( Salary Grade AnnualSalary ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
-
-    WAIT UP TO 5 SECONDS. " デバッガが追いつくための待機時間
 
     LOOP AT ldt_employees INTO lds_employee.
 
-      ldf_grade = lds_employee-Grade.
+      ldf_grade  = lds_employee-Grade.
+      ldf_salary = lds_employee-Salary * 12.
 
 *     2. 給与額に応じたランク判定ロジック
       IF lds_employee-Salary <= lcf_salary_low.        " 25万以下 -> D
@@ -336,13 +336,14 @@ CLASS lhc_Employee IMPLEMENTATION.
         ldf_grade = lcs_grade-Expert.
       ENDIF.
 
-*     3. ランクに変更がある場合のみ更新対象に追加 (重要: 無限ループ防止)
-      IF ldf_grade <> lds_employee-Grade.
+*     3. ランク、年収に変更がある場合のみ更新対象に追加
+      if ldf_grade <> lds_employee-Grade or ldf_salary <> lds_employee-AnnualSalary.
         CLEAR lds_update.
-        lds_update-%tky  = lds_employee-%tky.
-        lds_update-Grade = ldf_grade.
+        lds_update-%tky          = lds_employee-%tky.
+        lds_update-Grade         = ldf_grade.
+        lds_update-AnnualSalary  = ldf_salary.
         APPEND lds_update TO ldt_update.
-      ENDIF.
+      endif.
     ENDLOOP.
 
 *   4. データベース(バッファ)の更新実行
@@ -350,7 +351,7 @@ CLASS lhc_Employee IMPLEMENTATION.
       MODIFY ENTITIES OF zi_employee_001 IN LOCAL MODE
         ENTITY Employee
         UPDATE
-        FIELDS ( Grade ) WITH ldt_update.
+        FIELDS ( Grade AnnualSalary ) WITH ldt_update.
     ENDIF.
 
   ENDMETHOD.

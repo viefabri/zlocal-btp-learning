@@ -1,6 +1,7 @@
 projection;
 strict ( 2 ); // Side Effectsを使用するため有効化必須
 use draft;
+use side effects;
 
 define behavior for ZC_EMPLOYEE_001 alias Employee
 {
@@ -14,5 +15,4 @@ define behavior for ZC_EMPLOYEE_001 alias Employee
   use action Resume;
   use action Prepare;
 
-  side effects { field Salary affects field Grade, field AnnualSalary; }
 }
