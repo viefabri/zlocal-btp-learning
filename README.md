@@ -7,6 +7,12 @@ abapGit導入実践編
 ABAP RESTful Application Programming Model (RAP) の基礎を学ぶための実践的なサンプルコードです。
 従業員情報の参照・登録・更新・削除 (CRUD) アプリケーションを以下の構成で実装しています。
 
+#### セットアップ (データ生成)
+以下のクラスをABAPコンソールで実行 (`F9`) することで、初期データを投入できます。
+
+1.  **`zcl_generate_dept_001`**: 部署マスタ (`zdepartment_001`) のデータを生成します。**最初に実行してください**。
+2.  **`zcl_generate_data_001`**: 従業員テーブル (`zemployee_001`) のサンプルデータを生成します。
+
 #### アーキテクチャ構成図
 
 ```mermaid
@@ -89,6 +95,8 @@ graph TD
     *   データの作成・更新・削除時のロジックをABAPコードで記述しています。
     *   **Determination (自動設定)**:
         *   `initStatus`: 新規作成時にステータスの初期値を「A (在職中)」に自動設定します。
+        *   `finalizeData`: 保存時に Employee ID を元にメールアドレス (`<ID>@example.com`) を自動生成・補完します。
+        *   `calculateGrade`: 給与額 (`Salary`) に基づいて、従業員ランク (`Grade`) と年収 (`AnnualSalary`) を自動計算します。
     *   **Validation (入力チェック)**:
         *   `validateStatus`: ステータスが不正な値でないかチェックします。
         *   `validateSalary`: 給与がマイナスでないかチェックします。
