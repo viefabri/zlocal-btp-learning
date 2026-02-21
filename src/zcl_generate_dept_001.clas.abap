@@ -9,7 +9,11 @@ CLASS zcl_generate_dept_001 DEFINITION
   PRIVATE SECTION.
 ENDCLASS.
 
-CLASS zcl_generate_dept_001 IMPLEMENTATION.
+
+
+CLASS ZCL_GENERATE_DEPT_001 IMPLEMENTATION.
+
+
   METHOD if_oo_adt_classrun~main.
     DATA: lt_departments TYPE TABLE OF zdepartment_001.
 

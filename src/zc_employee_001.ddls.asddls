@@ -84,6 +84,7 @@ define root view entity ZC_EMPLOYEE_001
       @UI.identification: [{ position: 65 }]
       AnnualSalary,
       
+      @UI.hidden: true
       CurrencyCode,
       
 /* --- 追加: 給与ランク --- */

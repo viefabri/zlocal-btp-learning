@@ -14,13 +14,16 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
         joindate TYPE string VALUE 'VALIDATE_JOINDATE',
         status   TYPE string VALUE 'VALIDATE_STATUS',
       END   OF lcs_state_area,
-*     ステータス
+      "! <p class="shorttext synchronized">デフォルト通貨コード</p>
+      lcf_currency type zemployee_001-currency_code value 'JPY',
+      "! ステータス.
       BEGIN OF lcs_status,
         Working TYPE zemployee_001-status VALUE 'A',
         OnLeave TYPE zemployee_001-status VALUE 'B',
         Retired TYPE zemployee_001-status VALUE 'C',
       END   OF lcs_status,
-      lcf_jd_limit      TYPE i VALUE 730,                  "入社日チェック用 (2年)
+      "! 入社日チェック用.
+      lcf_jd_limit      TYPE i VALUE 730,
       " --- ランク判定用の閾値と値 ---
       lcf_salary_low    TYPE zemployee_001-salary VALUE '2500.00',
       lcf_salary_middle TYPE zemployee_001-salary VALUE '3000.00',
@@ -33,11 +36,13 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
         Junior TYPE zemployee_001-emp_grade VALUE 'D',
       END OF lcs_grade.
 * --- 権限チェック ---
+    "! <p class="shorttext synchronized">権限チェック</p>
     METHODS get_instance_authorizations FOR INSTANCE AUTHORIZATION
       IMPORTING keys REQUEST requested_authorizations FOR Employee RESULT result.
-* --- ステータス初期値 ---
-    METHODS initStatus FOR DETERMINE ON MODIFY
-      IMPORTING keys FOR Employee~initStatus.
+* --- 初期値 ---
+    "! <p class="shorttext synchronized">初期処理</p>
+    METHODS setInitialValues FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR Employee~setInitialValues.
 * --- 入力値チェック:ステータス ---
     METHODS validateStatus FOR VALIDATE ON SAVE
       IMPORTING keys FOR Employee~validateStatus.
@@ -87,7 +92,7 @@ CLASS lhc_Employee IMPLEMENTATION.
   ENDMETHOD.
 
 * --- Determination: ステータス初期値設定 ---
-  METHOD initStatus.
+  METHOD setInitialValues.
 
     DATA:
       ldt_employees TYPE ltt_result_employees.
@@ -95,23 +100,31 @@ CLASS lhc_Employee IMPLEMENTATION.
 * 1. 対象データの読み込み (現在のステータスを確認)
     READ ENTITIES OF zi_employee_001 IN LOCAL MODE
       ENTITY Employee
-      FIELDS ( Status ) WITH CORRESPONDING #( keys )
+      FIELDS ( Status CurrencyCode ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
 
 * 2. ステータスが空のデータのみを対象とする
-    DELETE ldt_employees WHERE Status IS NOT INITIAL.
+    DELETE ldt_employees
+     WHERE Status       IS NOT INITIAL
+       AND CurrencyCode IS NOT INITIAL.
+
     IF ldt_employees IS INITIAL.
       RETURN.
     ENDIF.
 
-* 3. ステータスを 'A' (在職中) に更新
+* 3. 更新処理
     MODIFY ENTITIES OF zi_employee_001 IN LOCAL MODE
       ENTITY Employee
       UPDATE
-      FIELDS ( Status )
+      FIELDS ( Status CurrencyCode )
       WITH VALUE #( FOR employee IN ldt_employees
-                    ( %tky = employee-%tky
-                      Status = lcs_status-working ) ).
+                    ( %tky         = employee-%tky
+                     Status        = COND #( WHEN employee-Status IS INITIAL
+                                             THEN lcs_status-working
+                                             ELSE employee-Status )
+                      CurrencyCode = COND #( WHEN employee-CurrencyCode IS INITIAL
+                                             THEN lcf_currency
+                                             ELSE employee-CurrencyCode ) ) ).
   ENDMETHOD.
 
 * --- Validation: ステータス値検証 ---
@@ -310,7 +323,6 @@ CLASS lhc_Employee IMPLEMENTATION.
       lds_update     TYPE STRUCTURE FOR UPDATE zi_employee_001,
       ldt_employees  TYPE ltt_result_employees,
       lds_employee   TYPE lts_result_employees,
-      ldf_state_area TYPE string VALUE lcs_state_area-joindate,
       ldf_grade      TYPE zemployee_001-emp_grade,
       ldf_salary     type zemployee_001-salary.
 

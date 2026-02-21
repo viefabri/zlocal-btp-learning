@@ -9,7 +9,10 @@ CLASS zcl_generate_data_001 DEFINITION
   PRIVATE SECTION.
 ENDCLASS.
 
-CLASS zcl_generate_data_001 IMPLEMENTATION.
+
+
+CLASS ZCL_GENERATE_DATA_001 IMPLEMENTATION.
+
 
   METHOD if_oo_adt_classrun~main.
     DATA:

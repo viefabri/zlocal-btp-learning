@@ -11,7 +11,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_http_hello_world_01 IMPLEMENTATION.
+CLASS ZCL_HTTP_HELLO_WORLD_01 IMPLEMENTATION.
 
 
   METHOD if_http_service_extension~handle_request.
