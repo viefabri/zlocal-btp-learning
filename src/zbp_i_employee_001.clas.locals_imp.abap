@@ -58,6 +58,10 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
     " --- ランク計算メソッド ---
     METHODS calculateGrade FOR DETERMINE ON MODIFY
       IMPORTING keys FOR Employee~calculateGrade.
+* --- 動的機能制御 ---
+    "! <p class="shorttext synchronized">動的機能制御</p>
+    METHODS get_instance_features FOR INSTANCE FEATURES
+      IMPORTING keys REQUEST requested_features FOR Employee RESULT result.
 *   メッセージクリア
     METHODS clear_state_message
       IMPORTING
@@ -416,6 +420,17 @@ CLASS lhc_Employee IMPLEMENTATION.
 
     APPEND lds_reported  TO ct_reported-employee.
 
+  ENDMETHOD.
+* --- 動的機能制御 ---
+  METHOD get_instance_features.
+*  通貨コードを読込専用に変更
+    result
+      = value #(
+        for key in keys (
+          %tky = key-%tky
+          %field-CurrencyCode = if_abap_behv=>fc-f-read_only
+         )
+     ).
   ENDMETHOD.
 
 ENDCLASS.
