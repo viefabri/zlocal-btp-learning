@@ -45,7 +45,7 @@ CLASS zcl_generate_nro_interval IMPLEMENTATION.
             cl_numberrange_intervals=>create(
               EXPORTING
                 interval  = lt_interval
-                object    = CONV #( 'ZNR_EMP001' )
+                object    = 'ZNR_EMP001'
                 subobject = CONV #( lv_subobj )
               IMPORTING
                 error     = DATA(lv_error)

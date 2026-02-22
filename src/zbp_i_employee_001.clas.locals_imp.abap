@@ -1,3 +1,72 @@
+CLASS lsc_zi_employee_001 DEFINITION INHERITING FROM cl_abap_behavior_saver.
+
+  PROTECTED SECTION.
+
+    METHODS adjust_numbers REDEFINITION.
+
+ENDCLASS.
+
+CLASS lsc_zi_employee_001 IMPLEMENTATION.
+
+METHOD adjust_numbers.
+    DATA:
+      ldt_employee_for_read TYPE TABLE FOR READ IMPORT zi_employee_001.
+
+    " 1. mapped 構造体から発番待ちの仮キー(%pid)を持つレコードを収集
+    LOOP AT mapped-employee ASSIGNING FIELD-SYMBOL(<ls_mapped>) WHERE %pid IS NOT INITIAL.
+      APPEND VALUE #( %pid = <ls_mapped>-%pid ) TO ldt_employee_for_read.
+    ENDLOOP.
+
+    " 採番対象がなければ処理終了
+    IF ldt_employee_for_read IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " 2. 採番に必要なビジネスデータ (JoinDate) をバッファから一括取得
+    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( JoinDate )
+        WITH ldt_employee_for_read
+      RESULT DATA(ldt_employee_data).
+
+    " 3. レコードごとに採番を実行し、mapped 構造体に実キーを上書き
+    LOOP AT mapped-employee ASSIGNING <ls_mapped> WHERE %pid IS NOT INITIAL.
+
+      " 該当レコードのビジネスデータを取得
+      READ TABLE ldt_employee_data INTO DATA(ls_employee)
+        WITH KEY pid
+        COMPONENTS
+          %pid = <ls_mapped>-%pid.
+
+      IF sy-subrc = 0.
+        " 入社日からYYYYMM (6桁) を抽出
+        DATA(lf_yyyymm) = CONV string( ls_employee-JoinDate+0(6) ).
+
+        TRY.
+            " NROから該当サブオブジェクトの連番を取得
+            cl_numberrange_runtime=>number_get(
+              EXPORTING
+                nr_range_nr = '01'
+                object      = 'ZNR_EMP001'
+                subobject   = CONV #( lf_yyyymm )
+              IMPORTING
+                number      = DATA(lf_number)
+            ).
+
+            " 10桁の実キー (YYYYMM + 末尾4桁) を生成して mapped にセット
+            DATA(lv_seq_4) = lf_number+16(4).
+            <ls_mapped>-EmployeeId = |{ lf_yyyymm }{ lv_seq_4 }|.
+
+          CATCH cx_number_ranges INTO DATA(lx_error).
+            " 注: Late Numberingフェーズでのエラーは原則ショートダンプ
+            " 実際の運用ではシステム管理者に通知する例外処理が必要
+        ENDTRY.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
     TYPES:
@@ -15,7 +84,7 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
         status   TYPE string VALUE 'VALIDATE_STATUS',
       END   OF lcs_state_area,
       "! <p class="shorttext synchronized">デフォルト通貨コード</p>
-      lcf_currency type zemployee_001-currency_code value 'JPY',
+      lcf_currency TYPE zemployee_001-currency_code VALUE 'JPY',
       "! ステータス.
       BEGIN OF lcs_status,
         Working TYPE zemployee_001-status VALUE 'A',
@@ -323,12 +392,12 @@ CLASS lhc_Employee IMPLEMENTATION.
   METHOD calculateGrade.
 
     DATA:
-      ldt_update     TYPE TABLE FOR UPDATE zi_employee_001,
-      lds_update     TYPE STRUCTURE FOR UPDATE zi_employee_001,
-      ldt_employees  TYPE ltt_result_employees,
-      lds_employee   TYPE lts_result_employees,
-      ldf_grade      TYPE zemployee_001-emp_grade,
-      ldf_salary     type zemployee_001-salary.
+      ldt_update    TYPE TABLE FOR UPDATE zi_employee_001,
+      lds_update    TYPE STRUCTURE FOR UPDATE zi_employee_001,
+      ldt_employees TYPE ltt_result_employees,
+      lds_employee  TYPE lts_result_employees,
+      ldf_grade     TYPE zemployee_001-emp_grade,
+      ldf_salary    TYPE zemployee_001-salary.
 
 *   1. 対象データの読み込み (給与と現在のランクを取得)
     READ ENTITIES OF zi_employee_001 IN LOCAL MODE
@@ -353,13 +422,13 @@ CLASS lhc_Employee IMPLEMENTATION.
       ENDIF.
 
 *     3. ランク、年収に変更がある場合のみ更新対象に追加
-      if ldf_grade <> lds_employee-Grade or ldf_salary <> lds_employee-AnnualSalary.
+      IF ldf_grade <> lds_employee-Grade OR ldf_salary <> lds_employee-AnnualSalary.
         CLEAR lds_update.
         lds_update-%tky          = lds_employee-%tky.
         lds_update-Grade         = ldf_grade.
         lds_update-AnnualSalary  = ldf_salary.
         APPEND lds_update TO ldt_update.
-      endif.
+      ENDIF.
     ENDLOOP.
 
 *   4. データベース(バッファ)の更新実行
@@ -423,10 +492,12 @@ CLASS lhc_Employee IMPLEMENTATION.
   ENDMETHOD.
 * --- 動的機能制御 ---
   METHOD get_instance_features.
+    DATA(ldt_keys) = keys.
+
 *  通貨コードを読込専用に変更
     result
-      = value #(
-        for key in keys (
+      = VALUE #(
+        FOR key IN ldt_keys (
           %tky = key-%tky
           %field-CurrencyCode = if_abap_behv=>fc-f-read_only
          )

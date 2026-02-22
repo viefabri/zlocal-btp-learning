@@ -36,7 +36,7 @@ CLASS zcl_check_nro_interval IMPLEMENTATION.
             CLEAR lt_interval.
             cl_numberrange_intervals=>read(
               EXPORTING
-                object    = CONV #( 'ZNR_EMP001' )
+                object    = 'ZNR_EMP001'
                 subobject = CONV #( lv_subobj )
               IMPORTING
                 interval  = lt_interval
