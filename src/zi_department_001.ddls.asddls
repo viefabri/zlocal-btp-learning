@@ -2,6 +2,7 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED  // 権限チェック
 @EndUserText.label: '部署'                        //テキスト
 @Metadata.ignorePropagatedAnnotations: false      //メタデータを引き継ぐ
+@VDM.viewType: #BASIC
 
 /* Value Help用最適化: データ件数が少ない(XS)ことを宣言し、ドロップダウン表示を可能にする */
 @ObjectModel.resultSet.sizeCategory: #XS

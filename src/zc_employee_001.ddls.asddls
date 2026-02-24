@@ -2,6 +2,7 @@
 @EndUserText.label: '社員'
 @Metadata.allowExtensions: true
 @Search.searchable: true
+@VDM.viewType: #CONSUMPTION
 
 @UI.headerInfo: {
     typeName: 'Employee',
@@ -12,7 +13,7 @@
 
 define root view entity ZC_EMPLOYEE_001
   provider contract transactional_query
-  as projection on ZI_EMPLOYEE_001
+  as projection on ZR_EMPLOYEE_001
 {
       @UI.facet: [{ id: 'General', type: #IDENTIFICATION_REFERENCE, label: 'General Info' }]
 

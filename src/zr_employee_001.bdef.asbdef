@@ -1,9 +1,9 @@
-managed implementation in class zbp_i_employee_001 unique;
+managed implementation in class zbp_r_employee_001 unique;
 strict ( 2 ); // Side Effectsを使用するため有効化必須
 
 with draft;
 
-define behavior for ZI_EMPLOYEE_001 alias Employee
+define behavior for ZR_EMPLOYEE_001 alias Employee
 persistent table zemployee_001
 draft table zemployee_d_001
 lock master                           // ロックマスタ

@@ -1,81 +1,12 @@
-CLASS lsc_zi_employee_001 DEFINITION INHERITING FROM cl_abap_behavior_saver.
-
-  PROTECTED SECTION.
-
-    METHODS adjust_numbers REDEFINITION.
-
-ENDCLASS.
-
-CLASS lsc_zi_employee_001 IMPLEMENTATION.
-
-METHOD adjust_numbers.
-    DATA:
-      ldt_employee_for_read TYPE TABLE FOR READ IMPORT zi_employee_001.
-
-    " 1. mapped 構造体から発番待ちの仮キー(%pid)を持つレコードを収集
-    LOOP AT mapped-employee ASSIGNING FIELD-SYMBOL(<ls_mapped>) WHERE %pid IS NOT INITIAL.
-      APPEND VALUE #( %pid = <ls_mapped>-%pid ) TO ldt_employee_for_read.
-    ENDLOOP.
-
-    " 採番対象がなければ処理終了
-    IF ldt_employee_for_read IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    " 2. 採番に必要なビジネスデータ (JoinDate) をバッファから一括取得
-    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
-      ENTITY Employee
-        FIELDS ( JoinDate )
-        WITH ldt_employee_for_read
-      RESULT DATA(ldt_employee_data).
-
-    " 3. レコードごとに採番を実行し、mapped 構造体に実キーを上書き
-    LOOP AT mapped-employee ASSIGNING <ls_mapped> WHERE %pid IS NOT INITIAL.
-
-      " 該当レコードのビジネスデータを取得
-      READ TABLE ldt_employee_data INTO DATA(ls_employee)
-        WITH KEY pid
-        COMPONENTS
-          %pid = <ls_mapped>-%pid.
-
-      IF sy-subrc = 0.
-        " 入社日からYYYYMM (6桁) を抽出
-        DATA(lf_yyyymm) = CONV string( ls_employee-JoinDate+0(6) ).
-
-        TRY.
-            " NROから該当サブオブジェクトの連番を取得
-            cl_numberrange_runtime=>number_get(
-              EXPORTING
-                nr_range_nr = '01'
-                object      = 'ZNR_EMP001'
-                subobject   = CONV #( lf_yyyymm )
-              IMPORTING
-                number      = DATA(lf_number)
-            ).
-
-            " 10桁の実キー (YYYYMM + 末尾4桁) を生成して mapped にセット
-            DATA(lv_seq_4) = lf_number+16(4).
-            <ls_mapped>-EmployeeId = |{ lf_yyyymm }{ lv_seq_4 }|.
-
-          CATCH cx_number_ranges INTO DATA(lx_error).
-            " 注: Late Numberingフェーズでのエラーは原則ショートダンプ
-            " 実際の運用ではシステム管理者に通知する例外処理が必要
-        ENDTRY.
-      ENDIF.
-    ENDLOOP.
-  ENDMETHOD.
-
-ENDCLASS.
-
 CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
     TYPES:
-      ltt_result_employees  TYPE TABLE FOR READ RESULT zi_employee_001,
+      ltt_result_employees  TYPE TABLE FOR READ RESULT zr_employee_001,
       lts_result_employees  TYPE LINE OF ltt_result_employees,
-      ltt_reported_employee TYPE RESPONSE FOR REPORTED LATE zi_employee_001,
-      lts_reported_employee TYPE STRUCTURE FOR REPORTED LATE zi_employee_001,
-      ltt_failed_employee   TYPE RESPONSE FOR FAILED LATE zi_employee_001,
-      lts_failed_employee   TYPE STRUCTURE FOR FAILED LATE zi_employee_001.
+      ltt_reported_employee TYPE RESPONSE FOR REPORTED LATE zr_employee_001,
+      lts_reported_employee TYPE STRUCTURE FOR REPORTED LATE zr_employee_001,
+      ltt_failed_employee   TYPE RESPONSE FOR FAILED LATE zr_employee_001,
+      lts_failed_employee   TYPE STRUCTURE FOR FAILED LATE zr_employee_001.
 
     CONSTANTS:
       BEGIN OF lcs_state_area,
@@ -156,6 +87,7 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
       CHANGING
         ct_reported   TYPE ltt_reported_employee.
 
+
 ENDCLASS.
 
 CLASS lhc_Employee IMPLEMENTATION.
@@ -171,7 +103,7 @@ CLASS lhc_Employee IMPLEMENTATION.
       ldt_employees TYPE ltt_result_employees.
 
 * 1. 対象データの読み込み (現在のステータスを確認)
-    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       FIELDS ( Status CurrencyCode ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
@@ -186,7 +118,7 @@ CLASS lhc_Employee IMPLEMENTATION.
     ENDIF.
 
 * 3. 更新処理
-    MODIFY ENTITIES OF zi_employee_001 IN LOCAL MODE
+    MODIFY ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       UPDATE
       FIELDS ( Status CurrencyCode )
@@ -209,7 +141,7 @@ CLASS lhc_Employee IMPLEMENTATION.
       ldf_state_area TYPE string VALUE lcs_state_area-status.
 
 * 1. 検証対象の読み込み
-    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       FIELDS ( Status ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
@@ -259,7 +191,7 @@ CLASS lhc_Employee IMPLEMENTATION.
       ldf_state_area TYPE string VALUE lcs_state_area-salary.
 
 * 1. 検証対象データの読み込み
-    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       FIELDS ( Salary )  WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
@@ -306,7 +238,7 @@ CLASS lhc_Employee IMPLEMENTATION.
       ldf_state_area TYPE string VALUE lcs_state_area-joindate,
       ldf_chk_date   TYPE zemployee_001-join_date.
 
-    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       FIELDS ( JoinDate ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
@@ -367,7 +299,7 @@ CLASS lhc_Employee IMPLEMENTATION.
     DATA: ldt_employees TYPE ltt_result_employees.
 
 *   1. 更新対象のデータを読み込む (IDとEmail)
-    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       FIELDS ( EmployeeId Email ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
@@ -379,7 +311,7 @@ CLASS lhc_Employee IMPLEMENTATION.
     ENDIF.
 
 *   3. Emailを自動生成して更新 ( ID + example.com )
-    MODIFY ENTITIES OF zi_employee_001 IN LOCAL MODE
+    MODIFY ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       UPDATE
       FIELDS ( Email )
@@ -392,15 +324,15 @@ CLASS lhc_Employee IMPLEMENTATION.
   METHOD calculateGrade.
 
     DATA:
-      ldt_update    TYPE TABLE FOR UPDATE zi_employee_001,
-      lds_update    TYPE STRUCTURE FOR UPDATE zi_employee_001,
+      ldt_update    TYPE TABLE FOR UPDATE zr_employee_001,
+      lds_update    TYPE STRUCTURE FOR UPDATE zr_employee_001,
       ldt_employees TYPE ltt_result_employees,
       lds_employee  TYPE lts_result_employees,
       ldf_grade     TYPE zemployee_001-emp_grade,
       ldf_salary    TYPE zemployee_001-salary.
 
 *   1. 対象データの読み込み (給与と現在のランクを取得)
-    READ ENTITIES OF zi_employee_001 IN LOCAL MODE
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
       FIELDS ( Salary Grade AnnualSalary ) WITH CORRESPONDING #( keys )
       RESULT ldt_employees.
@@ -433,7 +365,7 @@ CLASS lhc_Employee IMPLEMENTATION.
 
 *   4. データベース(バッファ)の更新実行
     IF ldt_update IS NOT INITIAL.
-      MODIFY ENTITIES OF zi_employee_001 IN LOCAL MODE
+      MODIFY ENTITIES OF zr_employee_001 IN LOCAL MODE
         ENTITY Employee
         UPDATE
         FIELDS ( Grade AnnualSalary ) WITH ldt_update.
@@ -502,6 +434,79 @@ CLASS lhc_Employee IMPLEMENTATION.
           %field-CurrencyCode = if_abap_behv=>fc-f-read_only
          )
      ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS lsc_ZR_EMPLOYEE_001 DEFINITION INHERITING FROM cl_abap_behavior_saver.
+  PROTECTED SECTION.
+
+    METHODS adjust_numbers REDEFINITION.
+
+    METHODS cleanup_finalize REDEFINITION.
+
+ENDCLASS.
+
+CLASS lsc_ZR_EMPLOYEE_001 IMPLEMENTATION.
+
+METHOD adjust_numbers.
+    DATA:
+      ldt_employee_for_read TYPE TABLE FOR READ IMPORT zr_employee_001.
+
+    " 1. mapped 構造体から発番待ちの仮キー(%pid)を持つレコードを収集
+    LOOP AT mapped-employee ASSIGNING FIELD-SYMBOL(<ls_mapped>) WHERE %pid IS NOT INITIAL.
+      APPEND VALUE #( %pid = <ls_mapped>-%pid ) TO ldt_employee_for_read.
+    ENDLOOP.
+
+    " 採番対象がなければ処理終了
+    IF ldt_employee_for_read IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " 2. 採番に必要なビジネスデータ (JoinDate) をバッファから一括取得
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( JoinDate )
+        WITH ldt_employee_for_read
+      RESULT DATA(ldt_employee_data).
+
+    " 3. レコードごとに採番を実行し、mapped 構造体に実キーを上書き
+    LOOP AT mapped-employee ASSIGNING <ls_mapped> WHERE %pid IS NOT INITIAL.
+
+      " 該当レコードのビジネスデータを取得
+      READ TABLE ldt_employee_data INTO DATA(ls_employee)
+        WITH KEY pid
+        COMPONENTS
+          %pid = <ls_mapped>-%pid.
+
+      IF sy-subrc = 0.
+        " 入社日からYYYYMM (6桁) を抽出
+        DATA(lf_yyyymm) = CONV string( ls_employee-JoinDate+0(6) ).
+
+        TRY.
+            " NROから該当サブオブジェクトの連番を取得
+            cl_numberrange_runtime=>number_get(
+              EXPORTING
+                nr_range_nr = '01'
+                object      = 'ZNR_EMP001'
+                subobject   = CONV #( lf_yyyymm )
+              IMPORTING
+                number      = DATA(lf_number)
+            ).
+
+            " 10桁の実キー (YYYYMM + 末尾4桁) を生成して mapped にセット
+            DATA(lv_seq_4) = lf_number+16(4).
+            <ls_mapped>-EmployeeId = |{ lf_yyyymm }{ lv_seq_4 }|.
+
+          CATCH cx_number_ranges INTO DATA(lx_error).
+            " 注: Late Numberingフェーズでのエラーは原則ショートダンプ
+            " 実際の運用ではシステム管理者に通知する例外処理が必要
+        ENDTRY.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD cleanup_finalize.
   ENDMETHOD.
 
 ENDCLASS.
