@@ -10,6 +10,7 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     CONSTANTS:
       BEGIN OF lcs_state_area,
+        currency TYPE string VALUE 'VALIDATE_CURRENCY',
         salary   TYPE string VALUE 'VALIDATE_SALARY',
         joindate TYPE string VALUE 'VALIDATE_JOINDATE',
         status   TYPE string VALUE 'VALIDATE_STATUS',
@@ -52,6 +53,9 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
 * --- 入力値チェック:入社日 ---
     METHODS validateJoinDate FOR VALIDATE ON SAVE
       IMPORTING keys FOR Employee~validateJoinDate.
+* --- 入力値チェック:通貨コード ---
+    METHODS validateCurrencyCode FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Employee~validateCurrencyCode.
 * --- 保存前処理 ---
     METHODS finalizeData FOR DETERMINE ON SAVE
       IMPORTING keys FOR Employee~finalizeData.
@@ -285,6 +289,57 @@ CLASS lhc_Employee IMPLEMENTATION.
             is_result     = lds_employee
             if_msg        = TEXT-w01 " 入社日が2年以上未来日です
             if_msgtyp     = if_abap_behv_message=>severity-warning
+            if_state_area = ldf_state_area
+          CHANGING
+            ct_reported   = reported
+            ).
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+* --- Validation: 通貨コード正当性チェック (フェイルセーフ) ---
+  METHOD validateCurrencyCode.
+
+    DATA:
+      ldt_employees  TYPE ltt_result_employees,
+      lds_employee   TYPE lts_result_employees,
+      ldf_state_area TYPE string.
+
+*   1. 更新対象データを読み込む
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+      FIELDS ( CurrencyCode ) WITH CORRESPONDING #( keys )
+      RESULT ldt_employees.
+
+    ldf_state_area = lcs_state_area-currency.
+
+    LOOP AT ldt_employees INTO lds_employee.
+
+*     以前のエラーメッセージをクリア（State Message管理）
+      clear_state_message(
+        EXPORTING
+          is_result     = lds_employee
+          if_state_area = ldf_state_area
+        CHANGING
+          ct_reported     = reported
+          ).
+
+*     通貨コードが固定通貨(JPY)以外の場合エラーとする
+      IF lds_employee-CurrencyCode IS NOT INITIAL AND lds_employee-CurrencyCode <> lcf_currency.
+*       エラーの設定
+        set_failed_err(
+          EXPORTING
+            is_result = lds_employee
+          CHANGING
+            ct_failed = failed
+         ).
+
+*       エラーメッセージの作成と送信 (Reported)
+        set_reported_msg(
+          EXPORTING
+            is_result     = lds_employee
+            if_msg        = text-e04
+            if_msgtyp     = if_abap_behv_message=>severity-error
             if_state_area = ldf_state_area
           CHANGING
             ct_reported   = reported

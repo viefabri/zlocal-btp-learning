@@ -27,6 +27,7 @@ late numbering                      // 遅延採番を宣言
     validation validateStatus;
     validation validateSalary;
     validation validateJoinDate;
+    validation validateCurrencyCode;
   }
 
   /* --- 項目制御 --- */
@@ -64,6 +65,7 @@ late numbering                      // 遅延採番を宣言
   validation validateStatus on save { field Status; create; update; }
   validation validateSalary on save { field Salary; create; update; }
   validation validateJoinDate on save { field JoinDate; create; update; }
+  validation validateCurrencyCode on save { field CurrencyCode; create; update; }
 
   /* --- Side Effects  --- */
   /* 給与が変更されたら、ランク(DB項目)と年収(CDS計算項目)を再読み込みする */

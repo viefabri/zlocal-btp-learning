@@ -12,7 +12,7 @@ ENDCLASS.
 CLASS zcl_test_eml_currency_001 IMPLEMENTATION.
   METHOD if_oo_adt_classrun~main.
     " 既存の社員レコード(100001)の通貨を 'USD' に更新するようAPI(EML)経由で要求する
-    MODIFY ENTITIES OF zi_employee_001
+    MODIFY ENTITIES OF zr_employee_001
       ENTITY Employee
       UPDATE FIELDS ( CurrencyCode )
       WITH VALUE #( ( EmployeeId = '100001' CurrencyCode = 'USD' ) )

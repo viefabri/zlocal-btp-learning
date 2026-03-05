@@ -60,6 +60,7 @@ CLASS zcl_generate_nro_interval IMPLEMENTATION.
 
           CATCH cx_number_ranges INTO DATA(lx_number_ranges).
             out->write( |Exception for { lv_subobj }: { lx_number_ranges->get_text( ) }| ).
+            lv_exist += 1.
         ENDTRY.
       ENDDO.
       " 1年進める

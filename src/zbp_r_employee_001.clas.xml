@@ -34,6 +34,12 @@
     </item>
     <item>
      <ID>I</ID>
+     <KEY>E04</KEY>
+     <ENTRY>無効な通貨コードが指定されています。JPYのみが許可されます。</ENTRY>
+     <LENGTH>62</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>W01</KEY>
      <ENTRY>入社日が2年以上未来日です</ENTRY>
      <LENGTH>23</LENGTH>

@@ -1,6 +1,11 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: '社員名簿 Basic View'
 @VDM.viewType: #BASIC
+@ObjectModel.usageType:{
+    serviceQuality: #A,   
+    sizeCategory:   #L,     
+    dataClass:      #MASTER   
+}
 define view entity ZI_EMPLOYEE_001
   as select from zemployee_001
   association [0..1] to ZI_DEPARTMENT_001 as _Department on $projection.DeptId = _Department.DeptId
