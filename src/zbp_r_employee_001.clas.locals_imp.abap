@@ -66,6 +66,12 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
     "! <p class="shorttext synchronized">動的機能制御</p>
     METHODS get_instance_features FOR INSTANCE FEATURES
       IMPORTING keys REQUEST requested_features FOR Employee RESULT result.
+    METHODS raisesalary FOR MODIFY
+      IMPORTING keys FOR ACTION employee~raisesalary RESULT result.
+* --- 昇給パラメータ 初期値設定 ---
+    "! <p class="shorttext synchronized">昇給パラメータ 初期値設定</p>
+    METHODS getdefaultsforraisesalary FOR READ
+      IMPORTING keys FOR FUNCTION employee~getdefaultsforraisesalary RESULT result.
 *   メッセージクリア
     METHODS clear_state_message
       IMPORTING
@@ -338,7 +344,7 @@ CLASS lhc_Employee IMPLEMENTATION.
         set_reported_msg(
           EXPORTING
             is_result     = lds_employee
-            if_msg        = text-e04
+            if_msg        = TEXT-e04
             if_msgtyp     = if_abap_behv_message=>severity-error
             if_state_area = ldf_state_area
           CHANGING
@@ -491,6 +497,61 @@ CLASS lhc_Employee IMPLEMENTATION.
      ).
   ENDMETHOD.
 
+  METHOD RaiseSalary.
+
+    DATA ldt_update TYPE TABLE FOR UPDATE zr_employee_001.
+
+*   現在の給与額を取得
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( Salary ) WITH CORRESPONDING #( keys )
+      RESULT DATA(ldt_employees).
+
+*    入力パラメータ (昇給額) を加算して更新用の内部テーブルを作成
+    LOOP AT ldt_employees INTO DATA(lds_employee).
+
+      READ TABLE keys INTO DATA(lds_key) WITH KEY id
+        COMPONENTS %tky = lds_employee-%tky.
+
+      IF sy-subrc = 0 AND lds_key-%param-RaiseAmount > 0.
+        APPEND VALUE #( %tky   = lds_employee-%tky
+                        Salary = lds_employee-Salary + lds_key-%param-RaiseAmount ) TO ldt_update.
+      ENDIF.
+    ENDLOOP.
+
+*   データベース(バッファ)の更新
+    IF ldt_update IS NOT INITIAL.
+      MODIFY ENTITIES OF zr_employee_001 IN LOCAL MODE
+        ENTITY Employee
+          UPDATE FIELDS ( Salary ) WITH ldt_update
+        FAILED failed
+        REPORTED reported.
+    ENDIF.
+
+*   最新の状態を読み込み直し、UIに返却する (必須処理)
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(ldt_employees_updated).
+
+    result = VALUE #( FOR employee IN ldt_employees_updated
+                      ( %tky   = employee-%tky
+                        %param = employee ) ).
+  ENDMETHOD.
+
+* 昇給パラメータ 通貨コードの初期値設定
+METHOD GetDefaultsForRaiseSalary.
+*   選択された社員の現在の通貨コードをデータベース(バッファ)から読み込む
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( CurrencyCode ) WITH CORRESPONDING #( keys )
+      RESULT DATA(ldt_employees).
+
+*   読み込んだ通貨コードを、アクションポップアップのパラメータ(%param)の初期値としてセットして返す
+    result = VALUE #( FOR lds_employee IN ldt_employees
+                      ( %tky   = lds_employee-%tky
+                        %param = VALUE #( CurrencyCode = lds_employee-CurrencyCode ) ) ).
+  ENDMETHOD.
 ENDCLASS.
 
 CLASS lsc_ZR_EMPLOYEE_001 DEFINITION INHERITING FROM cl_abap_behavior_saver.
@@ -504,7 +565,7 @@ ENDCLASS.
 
 CLASS lsc_ZR_EMPLOYEE_001 IMPLEMENTATION.
 
-METHOD adjust_numbers.
+  METHOD adjust_numbers.
     DATA:
       ldt_employee_for_read TYPE TABLE FOR READ IMPORT zr_employee_001.
 
@@ -529,14 +590,14 @@ METHOD adjust_numbers.
     LOOP AT mapped-employee ASSIGNING <ls_mapped> WHERE %pid IS NOT INITIAL.
 
       " 該当レコードのビジネスデータを取得
-      READ TABLE ldt_employee_data INTO DATA(ls_employee)
+      READ TABLE ldt_employee_data INTO DATA(lds_employee)
         WITH KEY pid
         COMPONENTS
           %pid = <ls_mapped>-%pid.
 
       IF sy-subrc = 0.
         " 入社日からYYYYMM (6桁) を抽出
-        DATA(lf_yyyymm) = CONV string( ls_employee-JoinDate+0(6) ).
+        DATA(lf_yyyymm) = CONV string( lds_employee-JoinDate+0(6) ).
 
         TRY.
             " NROから該当サブオブジェクトの連番を取得

@@ -30,6 +30,11 @@ late numbering                      // 遅延採番を宣言
     validation validateCurrencyCode;
   }
 
+  /* --- 昇給パラメータ --- */
+  action RaiseSalary parameter ZA_RAISE_SALARY_001
+    result [1] $self
+    { default function GetDefaultsForRaiseSalary; }
+
   /* --- 項目制御 --- */
 
   /* キー項目: 更新不可 */

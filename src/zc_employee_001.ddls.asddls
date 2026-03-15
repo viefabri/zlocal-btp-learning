@@ -19,9 +19,11 @@ define root view entity ZC_EMPLOYEE_001
 
       /* --- 各項目のUI表示設定 --- */
       /* EmployeeId: position 10 */
-      @UI.lineItem:       [{ position: 10 }]
+      @UI.lineItem:       [{ position: 10 },
+                          { type: #FOR_ACTION, dataAction: 'RaiseSalary' , label: '昇給' } ]
       @UI.selectionField: [{ position: 10 }]
-      @UI.identification: [{ position: 10 }]
+      @UI.identification: [{ position: 10 },
+                          { type: #FOR_ACTION, dataAction: 'RaiseSalary' , label: '昇給' } ]
       @EndUserText.label: '社員ID' // 明示的に上書き
   key EmployeeId,
 
