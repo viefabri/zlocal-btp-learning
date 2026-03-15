@@ -10,10 +10,11 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     CONSTANTS:
       BEGIN OF lcs_state_area,
-        currency TYPE string VALUE 'VALIDATE_CURRENCY',
-        salary   TYPE string VALUE 'VALIDATE_SALARY',
-        joindate TYPE string VALUE 'VALIDATE_JOINDATE',
-        status   TYPE string VALUE 'VALIDATE_STATUS',
+        currency       TYPE string VALUE 'VALIDATE_CURRENCY',
+        salary         TYPE string VALUE 'VALIDATE_SALARY',
+        joindate       TYPE string VALUE 'VALIDATE_JOINDATE',
+        status         TYPE string VALUE 'VALIDATE_STATUS',
+        preRaiseSalary TYPE string VALUE 'PRECHECK_RAISESALARY',
       END   OF lcs_state_area,
       "! <p class="shorttext synchronized">デフォルト通貨コード</p>
       lcf_currency TYPE zemployee_001-currency_code VALUE 'JPY',
@@ -72,6 +73,9 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
     "! <p class="shorttext synchronized">昇給パラメータ 初期値設定</p>
     METHODS getdefaultsforraisesalary FOR READ
       IMPORTING keys FOR FUNCTION employee~getdefaultsforraisesalary RESULT result.
+    "! <p class="shorttext synchronized">昇給パラメータ チェック処理</p>
+    METHODS precheck_raisesalary FOR PRECHECK
+      IMPORTING keys FOR ACTION employee~raisesalary.
 *   メッセージクリア
     METHODS clear_state_message
       IMPORTING
@@ -344,7 +348,7 @@ CLASS lhc_Employee IMPLEMENTATION.
         set_reported_msg(
           EXPORTING
             is_result     = lds_employee
-            if_msg        = TEXT-e04
+            if_msg        = TEXT-e04  " 通貨コード:JPY以外は使用できません
             if_msgtyp     = if_abap_behv_message=>severity-error
             if_state_area = ldf_state_area
           CHANGING
@@ -540,18 +544,73 @@ CLASS lhc_Employee IMPLEMENTATION.
   ENDMETHOD.
 
 * 昇給パラメータ 通貨コードの初期値設定
-METHOD GetDefaultsForRaiseSalary.
-*   選択された社員の現在の通貨コードをデータベース(バッファ)から読み込む
+  METHOD GetDefaultsForRaiseSalary.
+*  データ取得
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( CurrencyCode ) WITH CORRESPONDING #( keys )
+        RESULT DATA(ldt_employees).
+
+    LOOP AT ldt_employees ASSIGNING FIELD-SYMBOL(<lfs_keys>).
+*     初期化
+      APPEND INITIAL LINE TO result ASSIGNING FIELD-SYMBOL(<lfs_result>).
+
+*     マッピング
+      <lfs_result>-%tky = <lfs_keys>-%tky.
+
+*     該当データの読み込み
+      READ TABLE ldt_employees ASSIGNING FIELD-SYMBOL(<lfs_employees>)
+        WITH KEY id
+        COMPONENTS
+          %tky = <lfs_keys>-%tky.
+      IF sy-subrc = 0.
+        <lfs_result>-%param-CurrencyCode = <lfs_employees>-CurrencyCode.
+      ENDIF.
+
+
+    ENDLOOP.
+  ENDMETHOD.
+
+* 昇給パラメータチェック処理
+  METHOD precheck_RaiseSalary.
+
+    DATA:
+      lds_reported   TYPE STRUCTURE FOR REPORTED EARLY zr_employee_001.
+
+*   社員データの取得
     READ ENTITIES OF zr_employee_001 IN LOCAL MODE
       ENTITY Employee
         FIELDS ( CurrencyCode ) WITH CORRESPONDING #( keys )
       RESULT DATA(ldt_employees).
 
-*   読み込んだ通貨コードを、アクションポップアップのパラメータ(%param)の初期値としてセットして返す
-    result = VALUE #( FOR lds_employee IN ldt_employees
-                      ( %tky   = lds_employee-%tky
-                        %param = VALUE #( CurrencyCode = lds_employee-CurrencyCode ) ) ).
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<lfs_keys>).
+*     社員データの読み込み
+      READ TABLE ldt_employees ASSIGNING FIELD-SYMBOL(<lfs_employees>)
+        WITH KEY id
+        COMPONENTS
+          %tky = <lfs_keys>-%tky.
+
+      IF sy-subrc = 0.
+        IF <lfs_keys>-%param-CurrencyCode <> <lfs_employees>-CurrencyCode.
+*         failed構造体にキーを登録（保存を阻止）
+          APPEND VALUE #( %tky = <lfs_keys>-%tky ) TO failed-employee.
+
+*         メッセージ出力
+          CLEAR lds_reported.
+          lds_reported-%tky        = <lfs_keys>-%tky.
+          lds_reported-%state_area = lcs_state_area-preraisesalary.
+          lds_reported-%msg
+            = new_message_with_text(
+                severity = if_abap_behv_message=>severity-error
+                text     = TEXT-e05
+          ).
+          APPEND lds_reported TO reported-employee.
+        ENDIF.
+      ENDIF.
+
+    ENDLOOP.
   ENDMETHOD.
+
 ENDCLASS.
 
 CLASS lsc_ZR_EMPLOYEE_001 DEFINITION INHERITING FROM cl_abap_behavior_saver.
