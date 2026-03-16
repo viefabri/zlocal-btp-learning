@@ -31,7 +31,7 @@ late numbering                      // 遅延採番を宣言
   }
 
   /* --- 昇給パラメータ --- */
-  action ( precheck ) RaiseSalary deep parameter ZA_RAISE_SALARY_001
+  action ( features : instance, precheck ) RaiseSalary deep parameter ZA_RAISE_SALARY_001
     result [1] $self
     { default function GetDefaultsForRaiseSalary; }
 

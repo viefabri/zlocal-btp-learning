@@ -14,7 +14,6 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
         salary         TYPE string VALUE 'VALIDATE_SALARY',
         joindate       TYPE string VALUE 'VALIDATE_JOINDATE',
         status         TYPE string VALUE 'VALIDATE_STATUS',
-        preRaiseSalary TYPE string VALUE 'PRECHECK_RAISESALARY',
       END   OF lcs_state_area,
       "! <p class="shorttext synchronized">デフォルト通貨コード</p>
       lcf_currency TYPE zemployee_001-currency_code VALUE 'JPY',
@@ -584,6 +583,20 @@ CLASS lhc_Employee IMPLEMENTATION.
       RESULT DATA(ldt_employees).
 
     LOOP AT keys ASSIGNING FIELD-SYMBOL(<lfs_keys>).
+
+      IF <lfs_keys>-%param-RaiseAmount <= 0.
+        APPEND VALUE #(  %tky = <lfs_keys>-%tky ) TO failed-employee.
+        CLEAR lds_reported.
+        lds_reported-%tky = <lfs_keys>-%tky.
+        lds_reported-%msg
+          = new_message_with_text(
+            severity = if_abap_behv_message=>severity-error
+            text     = TEXT-e06 ). "昇給額には0より大きい値を入力してください
+        lds_reported-%action-RaiseSalary = if_abap_behv=>mk-on.
+        APPEND lds_reported TO reported-employee.
+        CONTINUE. "次レコードへ
+      ENDIF.
+
 *     社員データの読み込み
       READ TABLE ldt_employees ASSIGNING FIELD-SYMBOL(<lfs_employees>)
         WITH KEY id
@@ -598,13 +611,14 @@ CLASS lhc_Employee IMPLEMENTATION.
 *         メッセージ出力
           CLEAR lds_reported.
           lds_reported-%tky        = <lfs_keys>-%tky.
-          lds_reported-%state_area = lcs_state_area-preraisesalary.
           lds_reported-%msg
             = new_message_with_text(
                 severity = if_abap_behv_message=>severity-error
                 text     = TEXT-e05
           ).
+          lds_reported-%action-RaiseSalary = if_abap_behv=>mk-on.
           APPEND lds_reported TO reported-employee.
+          CONTINUE. "次レコードへ
         ENDIF.
       ENDIF.
 

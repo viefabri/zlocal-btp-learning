@@ -46,6 +46,12 @@
     </item>
     <item>
      <ID>I</ID>
+     <KEY>E06</KEY>
+     <ENTRY>昇給額には0より大きい値を入力してください</ENTRY>
+     <LENGTH>42</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>W01</KEY>
      <ENTRY>入社日が2年以上未来日です</ENTRY>
      <LENGTH>23</LENGTH>
