@@ -35,6 +35,10 @@ late numbering                      // 遅延採番を宣言
     result [1] $self
     { default function GetDefaultsForRaiseSalary; }
 
+ /* --- 退職パラメータ --- */
+ action ( features : instance, precheck ) Resign deep parameter ZA_RESIGN_001
+   result [1] $self;
+
   /* --- 項目制御 --- */
 
   /* キー項目: 更新不可 */
@@ -46,6 +50,7 @@ late numbering                      // 遅延採番を宣言
   /* 管理項目 & 参照項目:
    システム自動設定または外部結合項目のため、常に読取専用かつマッピング不要と宣言 */
   field ( readonly )
+  ResignDate, // 退職日
   CreatedBy,
   CreatedAt,
   LastChangedBy,
@@ -85,6 +90,7 @@ late numbering                      // 遅延採番を宣言
       Email              = email;
       DeptId             = dept_id;
       JoinDate           = join_date;
+      ResignDate         = resign_date; //退職日
       Salary             = salary;
       CurrencyCode       = currency_code;
       /* 追加項目マッピング */

@@ -2,9 +2,9 @@
 @EndUserText.label: '社員名簿 Basic View'
 @VDM.viewType: #BASIC
 @ObjectModel.usageType:{
-    serviceQuality: #A,   
-    sizeCategory:   #L,     
-    dataClass:      #MASTER   
+    serviceQuality: #A,
+    sizeCategory:   #L,
+    dataClass:      #MASTER
 }
 define view entity ZI_EMPLOYEE_001
   as select from zemployee_001
@@ -18,11 +18,12 @@ define view entity ZI_EMPLOYEE_001
       dept_id               as DeptId,
       emp_grade             as Grade,
       join_date             as JoinDate,
+      resign_date           as ResignDate, //退職日
       @Semantics.amount.currencyCode: 'CurrencyCode'
       salary                as Salary,
       currency_code         as CurrencyCode,
       status                as Status,
-      
+
       /* 監査項目群 */
       @Semantics.user.createdBy: true
       created_by            as CreatedBy,

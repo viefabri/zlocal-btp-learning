@@ -11,6 +11,7 @@ define root view entity ZR_EMPLOYEE_001
       DeptId,
       Grade,
       JoinDate,
+      ResignDate, //退職日
       Salary,
       
       /* ビジネス計算ロジックをここで定義 */

@@ -20,15 +20,17 @@ define root view entity ZC_EMPLOYEE_001
       /* --- 各項目のUI表示設定 --- */
       /* EmployeeId: position 10 */
       @UI.lineItem:       [{ position: 10 },
-                          { type: #FOR_ACTION, dataAction: 'RaiseSalary' , label: '昇給' } ]
+                          { type: #FOR_ACTION, dataAction: 'RaiseSalary' , label: '昇給' },
+                          { type: #FOR_ACTION, dataAction: 'Resign' , label: '退職' } ]
       @UI.selectionField: [{ position: 10 }]
       @UI.identification: [{ position: 10 },
-                          { type: #FOR_ACTION, dataAction: 'RaiseSalary' , label: '昇給' } ]
+                          { type: #FOR_ACTION, dataAction: 'RaiseSalary' , label: '昇給' },
+                          { type: #FOR_ACTION, dataAction: 'Resign' , label: '退職' } ]
       @EndUserText.label: '社員ID' // 明示的に上書き
   key EmployeeId,
 
       /* --- ステータス : position 15 --- */
-      @UI.lineItem:       [{ position: 15 }] 
+      @UI.lineItem:       [{ position: 15 }]
       @UI.selectionField: [{ position: 15 }]
       @UI.identification: [{ position: 15 }]
       @ObjectModel.text.element: ['StatusText']
@@ -77,24 +79,29 @@ define root view entity ZC_EMPLOYEE_001
       @UI.identification: [{ position: 50 }]
       JoinDate,
 
+      /*  退職日 */
+      @UI.lineItem:        [{ position: 55 }] //一覧画面
+      @UI.identification:  [{ position: 55 }] //詳細画面
+      ResignDate,
+
       /* Salary: position 60 */
       @UI.lineItem:       [{ position: 60 }]
       @UI.identification: [{ position: 60 }]
       Salary,
-      
-/* --- 追加: 年収 (概算) --- */
+
+      /* --- 追加: 年収 (概算) --- */
       @UI.lineItem:       [{ position: 65 }]
       @UI.identification: [{ position: 65 }]
       AnnualSalary,
-      
+
       CurrencyCode,
-      
-/* --- 追加: 給与ランク --- */
+
+      /* --- 追加: 給与ランク --- */
       @UI.lineItem:       [{ position: 70 }]
       @UI.identification: [{ position: 70 }]
       @EndUserText.label: '給与ランク'
       Grade,
-      
+
       /* LastChangedAt */
       @UI.identification: [{ position: 99 }]
       @EndUserText.label: '最終更新日時' // 明示的に上書き

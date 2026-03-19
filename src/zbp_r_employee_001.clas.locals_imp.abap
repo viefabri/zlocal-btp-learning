@@ -10,10 +10,10 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     CONSTANTS:
       BEGIN OF lcs_state_area,
-        currency       TYPE string VALUE 'VALIDATE_CURRENCY',
-        salary         TYPE string VALUE 'VALIDATE_SALARY',
-        joindate       TYPE string VALUE 'VALIDATE_JOINDATE',
-        status         TYPE string VALUE 'VALIDATE_STATUS',
+        currency TYPE string VALUE 'VALIDATE_CURRENCY',
+        salary   TYPE string VALUE 'VALIDATE_SALARY',
+        joindate TYPE string VALUE 'VALIDATE_JOINDATE',
+        status   TYPE string VALUE 'VALIDATE_STATUS',
       END   OF lcs_state_area,
       "! <p class="shorttext synchronized">デフォルト通貨コード</p>
       lcf_currency TYPE zemployee_001-currency_code VALUE 'JPY',
@@ -75,6 +75,12 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
     "! <p class="shorttext synchronized">昇給パラメータ チェック処理</p>
     METHODS precheck_raisesalary FOR PRECHECK
       IMPORTING keys FOR ACTION employee~raisesalary.
+    "! <p class="shorttext synchronized">退職処理</p>
+    METHODS resign FOR MODIFY
+      IMPORTING keys FOR ACTION employee~resign RESULT result.
+    "! <p class="shorttext synchronized">退職日 チェック処理</p>
+    METHODS precheck_resign FOR PRECHECK
+      IMPORTING keys FOR ACTION employee~resign.
 *   メッセージクリア
     METHODS clear_state_message
       IMPORTING
@@ -489,6 +495,7 @@ CLASS lhc_Employee IMPLEMENTATION.
 * --- 動的機能制御 ---
   METHOD get_instance_features.
     DATA(ldt_keys) = keys.
+    DATA ldt_employees TYPE ltt_result_employees.
 
 *  通貨コードを読込専用に変更
     result
@@ -498,6 +505,30 @@ CLASS lhc_Employee IMPLEMENTATION.
           %field-CurrencyCode = if_abap_behv=>fc-f-read_only
          )
      ).
+
+* --- 退職ボタンの制御 ---
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( Status ) WITH CORRESPONDING #( keys )
+        RESULT ldt_employees.
+
+    LOOP AT ldt_employees INTO DATA(lds_employees).
+
+      READ TABLE result ASSIGNING FIELD-SYMBOL(<lfs_result>)
+        WITH KEY id
+          COMPONENTS
+            %tky = lds_employees-%tky.
+
+      IF sy-subrc = 0.
+*       退職の場合
+        IF lds_employees-Status = lcs_status-retired.
+          <lfs_result>-%action-Resign = if_abap_behv=>fc-o-disabled.
+        ELSE.
+          <lfs_result>-%action-Resign = if_abap_behv=>fc-o-enabled.
+        ENDIF.
+      ENDIF.
+
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD RaiseSalary.
@@ -622,6 +653,66 @@ CLASS lhc_Employee IMPLEMENTATION.
         ENDIF.
       ENDIF.
 
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD Resign.
+    DATA:
+      ldt_update TYPE TABLE FOR UPDATE zr_employee_001,
+      lds_update TYPE STRUCTURE FOR UPDATE zr_employee_001.
+
+    LOOP AT keys INTO DATA(lds_keys).
+      CLEAR lds_update.
+      lds_update-%tky = lds_keys-%tky.
+      lds_update-ResignDate = lds_keys-%param-ResignDate.
+      lds_update-Status = lcs_status-retired.
+      APPEND lds_update TO ldt_update.
+    ENDLOOP.
+
+*   更新処理
+    IF ldt_update IS NOT INITIAL.
+      MODIFY ENTITIES OF zr_employee_001 IN LOCAL MODE
+        ENTITY Employee
+          UPDATE FIELDS ( ResignDate Status )
+          WITH ldt_update
+        FAILED failed
+        REPORTED reported.
+    ENDIF.
+
+*   最新情報への更新
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        ALL FIELDS WITH CORRESPONDING #( keys )
+        RESULT DATA(ldt_employees_updated).
+
+    result = VALUE #(
+      FOR employee IN ldt_employees_updated
+        (
+          %tky = employee-%tky
+          %param = employee
+        )
+     ).
+
+  ENDMETHOD.
+
+  METHOD precheck_Resign.
+    DATA LDS_reported TYPE STRUCTURE FOR REPORTED EARLY zr_employee_001.
+    DATA(ldf_today) = cl_abap_context_info=>get_system_date(  ).
+
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<lfs_keys>).
+*     未来日チェック
+      IF <lfs_keys>-%param-ResignDate > ldf_today.
+        APPEND VALUE #( %tky = <lfs_keys>-%tky ) TO failed-employee.
+
+        CLEAR lds_reported.
+        lds_reported-%tky = <lfs_keys>-%tky.
+        lds_reported-%msg = new_message_with_text(
+          severity = if_abap_behv_message=>severity-error
+          text     = TEXT-e07  "退職日に未来日は指定できません
+         ).
+        lds_reported-%action-Resign = if_abap_behv=>mk-on.
+        APPEND lds_reported TO reported-employee.
+      ENDIF.
     ENDLOOP.
   ENDMETHOD.
 

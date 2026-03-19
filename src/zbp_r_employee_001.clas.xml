@@ -52,6 +52,12 @@
     </item>
     <item>
      <ID>I</ID>
+     <KEY>E07</KEY>
+     <ENTRY>退職日に未来日は指定できません</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>W01</KEY>
      <ENTRY>入社日が2年以上未来日です</ENTRY>
      <LENGTH>23</LENGTH>

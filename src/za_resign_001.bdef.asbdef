@@ -1,0 +1,9 @@
+abstract;
+strict ( 2 );
+with hierarchy;
+
+define behavior for ZA_RESIGN_001 alias ResignParam
+with control
+{
+  field ( mandatory : execute ) ResignDate;
+}
