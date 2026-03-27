@@ -71,6 +71,9 @@ late numbering                      // 遅延採番を宣言
   /* 保存直前にデータを最終加工する (例: Email自動生成) */
   determination finalizeData on save { create; }
 
+/* ステータス変更時にテキスト項目を更新 */
+  determination updateStatusText on modify { field Status; }
+
   /* 入力検証 (保存時) */
   validation validateStatus on save { field Status; create; update; }
   validation validateSalary on save { field Salary; create; update; }

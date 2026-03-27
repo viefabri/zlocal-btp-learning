@@ -34,6 +34,7 @@ define root view entity ZC_EMPLOYEE_001
       @UI.selectionField: [{ position: 15 }]
       @UI.identification: [{ position: 15 }]
       @ObjectModel.text.element: ['StatusText']
+      @UI.textArrangement: #TEXT_FIRST
       @Consumption.valueHelpDefinition: [{ entity : { name: 'ZI_STATUS_VH_001', element: 'Status' } }]
       Status,
 

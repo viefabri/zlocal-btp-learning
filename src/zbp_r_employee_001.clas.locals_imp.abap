@@ -81,6 +81,9 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
     "! <p class="shorttext synchronized">退職日 チェック処理</p>
     METHODS precheck_resign FOR PRECHECK
       IMPORTING keys FOR ACTION employee~resign.
+    "! <p class="shorttext synchronized">ステータステキスト更新</p>
+    METHODS updatestatustext FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR employee~updatestatustext.
 *   メッセージクリア
     METHODS clear_state_message
       IMPORTING
@@ -714,6 +717,51 @@ CLASS lhc_Employee IMPLEMENTATION.
         APPEND lds_reported TO reported-employee.
       ENDIF.
     ENDLOOP.
+  ENDMETHOD.
+
+METHOD updateStatusText.
+    DATA: ldt_update TYPE TABLE FOR UPDATE zr_employee_001.
+
+    " 1. 更新されたステータスをドラフトから読み込む
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+        FIELDS ( Status ) WITH CORRESPONDING #( keys )
+      RESULT DATA(ldt_employees).
+
+    IF ldt_employees IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " 2. 対象データからユニークなステータスコードを抽出 (検索条件用)
+    DATA(ldt_status_keys) = ldt_employees.
+    SORT ldt_status_keys BY Status.
+    DELETE ADJACENT DUPLICATES FROM ldt_status_keys COMPARING Status.
+
+    " 3. ZI_STATUS_VH_001 から該当するテキストを一括取得
+    " ※ ログオン言語の解決はCDS側(where Language = $session.system_language)で自動的に行われる
+    SELECT Status, StatusText
+      FROM ZI_STATUS_VH_001
+      FOR ALL ENTRIES IN @ldt_status_keys
+      WHERE Status = @ldt_status_keys-Status
+      INTO TABLE @DATA(ldt_texts).
+
+    " 4. 更新用データの組み立て
+    LOOP AT ldt_employees INTO DATA(lds_employee).
+      " 取得した内部テーブルから該当ステータスのテキストを検索
+      ASSIGN ldt_texts[ Status = lds_employee-Status ] TO FIELD-SYMBOL(<ls_text>).
+      DATA(ldf_text) = COND #( WHEN <ls_text> IS ASSIGNED THEN <ls_text>-StatusText ELSE '' ).
+
+      " 更新対象としてセット
+      APPEND VALUE #( %tky       = lds_employee-%tky
+                      StatusText = ldf_text ) TO ldt_update.
+    ENDLOOP.
+
+    " 5. ドラフト上の StatusText を更新
+    IF ldt_update IS NOT INITIAL.
+      MODIFY ENTITIES OF zr_employee_001 IN LOCAL MODE
+        ENTITY Employee
+          UPDATE FIELDS ( StatusText ) WITH ldt_update.
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.

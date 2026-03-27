@@ -10,6 +10,7 @@ define view entity ZI_STATUS_VH_001
   as select from I_Language
 {
     key 'A'     as Status,
+         @Semantics.text: true
          cast( '在職中' as abap.char(20) ) as StatusText
 }
 where
