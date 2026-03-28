@@ -11,7 +11,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_GENERATE_DATA_001 IMPLEMENTATION.
+CLASS zcl_generate_data_001 IMPLEMENTATION.
 
 
   METHOD if_oo_adt_classrun~main.
@@ -26,7 +26,7 @@ CLASS ZCL_GENERATE_DATA_001 IMPLEMENTATION.
 
     " 1. 既存データをクリア
     DELETE FROM zemployee_001.
-    deLETE from zemployee_d_001.
+    DELETE FROM zemployee_d_001.
 
     " 2. データ生成 (新規項目 emp_grade を追加)
     " ※Gradeは給与額に応じた仮の値を設定しています (A:高, B:中, C:低)
