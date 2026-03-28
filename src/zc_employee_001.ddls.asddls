@@ -38,9 +38,8 @@ define root view entity ZC_EMPLOYEE_001
       @Consumption.valueHelpDefinition: [{ entity : { name: 'ZI_STATUS_VH_001', element: 'Status' } }]
       Status,
 
-      /* StatusText */
       @UI.hidden: true
-      StatusText,
+      _Status.StatusText   as StatusText,
 
       /* FirstName: position 20 */
       @UI.lineItem:       [{ position: 20 }]

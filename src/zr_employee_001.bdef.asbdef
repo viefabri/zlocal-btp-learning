@@ -56,7 +56,7 @@ late numbering                      // 遅延採番を宣言
   LastChangedBy,
   LocalLastChangedAt,
   LastChangedAt,
-  StatusText,
+  //StatusText,
   Grade,
   AnnualSalary;
 
@@ -83,7 +83,7 @@ late numbering                      // 遅延採番を宣言
   /* --- Side Effects  --- */
   side effects {
     field Salary affects field Grade, field AnnualSalary;
-    field Status affects field StatusText;
+   // field Status affects field StatusText;
      }
 
   /* --- マッピング定義 --- */

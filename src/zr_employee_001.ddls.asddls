@@ -21,9 +21,6 @@ define root view entity ZR_EMPLOYEE_001
       CurrencyCode,
       Status,
       
-      /* UI向けテキスト結合（Base BOで定義しProjectionで公開） */
-      _Status.StatusText as StatusText,
-
       CreatedBy,
       CreatedAt,
       LastChangedBy,
