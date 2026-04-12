@@ -597,7 +597,6 @@ CLASS lhc_Employee IMPLEMENTATION.
         <lfs_result>-%param-CurrencyCode = <lfs_employees>-CurrencyCode.
       ENDIF.
 
-
     ENDLOOP.
   ENDMETHOD.
 

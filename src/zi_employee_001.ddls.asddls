@@ -1,4 +1,4 @@
-@AccessControl.authorizationCheck: #NOT_REQUIRED
+@AccessControl.authorizationCheck: #CHECK
 @EndUserText.label: '社員名簿 Basic View'
 @VDM.viewType: #BASIC
 @ObjectModel.usageType:{
