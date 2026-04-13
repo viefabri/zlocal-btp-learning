@@ -30,6 +30,11 @@
       <ACCESS_CATEGORY>W</ACCESS_CATEGORY>
       <ACTIVITY_TEXT>削除</ACTIVITY_TEXT>
      </item>
+     <item>
+      <ACTIVITY>16</ACTIVITY>
+      <ACCESS_CATEGORY>W</ACCESS_CATEGORY>
+      <ACTIVITY_TEXT>実行</ACTIVITY_TEXT>
+     </item>
     </ACTIVITY_MAPPING>
    </SIA3>
   </asx:values>

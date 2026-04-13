@@ -29,6 +29,15 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
       lcf_salary_low    TYPE zemployee_001-salary VALUE '2500.00',
       lcf_salary_middle TYPE zemployee_001-salary VALUE '3000.00',
       lcf_salary_high   TYPE zemployee_001-salary VALUE '4000.00',
+      " --- 権限オブジェクト ---
+      "! <p class="shorttext synchronized">権限アクティビティ</p>
+      BEGIN OF lcs_auth_act,
+        create TYPE c LENGTH 2 VALUE '01',
+        update TYPE c LENGTH 2 VALUE '02',
+        disp   TYPE c LENGTH 2 VALUE '03',
+        del    TYPE c LENGTH 2 VALUE '06',
+        excute TYPE c LENGTH 2 VALUE '16',
+      END   OF lcs_auth_act,
 
       BEGIN OF lcs_grade,
         Expert TYPE zemployee_001-emp_grade VALUE 'A',
@@ -36,10 +45,6 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
         Middle TYPE zemployee_001-emp_grade VALUE 'C',
         Junior TYPE zemployee_001-emp_grade VALUE 'D',
       END OF lcs_grade.
-* --- 権限チェック ---
-    "! <p class="shorttext synchronized">権限チェック</p>
-    METHODS get_instance_authorizations FOR INSTANCE AUTHORIZATION
-      IMPORTING keys REQUEST requested_authorizations FOR Employee RESULT result.
 * --- 初期値 ---
     "! <p class="shorttext synchronized">初期処理</p>
     METHODS setInitialValues FOR DETERMINE ON MODIFY
@@ -81,6 +86,13 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
     "! <p class="shorttext synchronized">退職日 チェック処理</p>
     METHODS precheck_resign FOR PRECHECK
       IMPORTING keys FOR ACTION employee~resign.
+* --- 権限チェック ---
+    "! <p class="shorttext synchronized">グローバル権限処理</p>
+    METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION
+      IMPORTING REQUEST requested_authorizations FOR employee RESULT result.
+    "! <p class="shorttext synchronized">インスタンス権限チェック</p>
+    METHODS get_instance_authorizations FOR INSTANCE AUTHORIZATION
+      IMPORTING keys REQUEST requested_authorizations FOR Employee RESULT result.
 *   メッセージクリア
     METHODS clear_state_message
       IMPORTING
@@ -110,10 +122,6 @@ CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
 ENDCLASS.
 
 CLASS lhc_Employee IMPLEMENTATION.
-
-  METHOD get_instance_authorizations.
-* 権限チェックを実装しないためスキップ
-  ENDMETHOD.
 
 * --- Determination: ステータス初期値設定 ---
   METHOD setInitialValues.
@@ -713,6 +721,71 @@ CLASS lhc_Employee IMPLEMENTATION.
         APPEND lds_reported TO reported-employee.
       ENDIF.
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD get_instance_authorizations.
+
+*   権限チェックに必要な項目を取得
+    READ ENTITIES OF zr_employee_001 IN LOCAL MODE
+      ENTITY Employee
+      FIELDS ( DeptId ) WITH CORRESPONDING #( keys )
+      RESULT DATA(ldt_employees).
+
+*   取得したデータの権限チェック
+    LOOP AT ldt_employees ASSIGNING FIELD-SYMBOL(<ls_employee>).
+
+      APPEND INITIAL LINE TO result ASSIGNING FIELD-SYMBOL(<ls_result>).
+      <ls_result>-%tky = <ls_employee>-%tky.
+
+*     更新が要求された場合(追加アクションは更新として処理される)
+      IF requested_authorizations-%update = if_abap_behv=>mk-on.
+        AUTHORITY-CHECK OBJECT 'ZAODPT_001'
+          ID 'ACTVT'      FIELD lcs_auth_act-update
+          ID 'ZDEPTID001' FIELD <ls_employee>-DeptId.
+
+        <ls_result>-%update = COND #( WHEN sy-subrc = 0
+                                      THEN if_abap_behv=>auth-allowed
+                                      ELSE if_abap_behv=>auth-unauthorized ).
+      ENDIF.
+
+*     削除が要求された場合
+      IF requested_authorizations-%delete = if_abap_behv=>mk-on.
+        AUTHORITY-CHECK OBJECT 'ZAODPT_001'
+          ID 'ACTVT'      FIELD lcs_auth_act-del
+          ID 'ZDEPTID001' FIELD <ls_employee>-DeptId.
+
+        <ls_result>-%delete = COND #( WHEN sy-subrc = 0
+                                      THEN if_abap_behv=>auth-allowed
+                                      ELSE if_abap_behv=>auth-unauthorized ).
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD get_global_authorizations.
+
+*   新規作成(Create) の権限チェック
+    IF requested_authorizations-%create = if_abap_behv=>mk-on.
+      AUTHORITY-CHECK OBJECT 'ZAODPT_001'
+        ID 'ACTVT'      FIELD lcs_auth_act-create
+        ID 'ZDEPTID001' DUMMY.
+
+      result-%create = COND #( WHEN sy-subrc = 0
+                               THEN if_abap_behv=>auth-allowed
+                               ELSE if_abap_behv=>auth-unauthorized ).
+    ENDIF.
+
+*   昇給の権限チェック
+    IF   requested_authorizations-%action-raisesalary = if_abap_behv=>mk-on.
+*     アクション実行用のACTVT
+      AUTHORITY-CHECK OBJECT 'ZAODPT_001'
+        ID 'ACTVT'      FIELD lcs_auth_act-excute
+        ID 'ZDEPTID001' DUMMY.
+
+      result-%action-raisesalary = COND #( WHEN sy-subrc = 0
+                                           THEN if_abap_behv=>auth-allowed
+                                           ELSE if_abap_behv=>auth-unauthorized ).
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.

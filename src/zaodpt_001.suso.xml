@@ -34,6 +34,10 @@
      <BROBJ>ZAODPT_001</BROBJ>
      <ACTVT>06</ACTVT>
     </TACTZ>
+    <TACTZ>
+     <BROBJ>ZAODPT_001</BROBJ>
+     <ACTVT>16</ACTVT>
+    </TACTZ>
    </TACTZ>
   </asx:values>
  </asx:abap>

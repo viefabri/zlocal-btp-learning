@@ -8,7 +8,7 @@ persistent table zemployee_001
 draft table zemployee_d_001
 lock master                           // ロックマスタ
 total etag LastChangedAt              // Total ETag (BO全体のバージョン)
-authorization master ( instance )
+authorization master ( instance, global )
 etag master LocalLastChangedAt       // Instance ETag (行レベルのバージョン)
 late numbering                      // 遅延採番を宣言
 {
@@ -31,12 +31,12 @@ late numbering                      // 遅延採番を宣言
   }
 
   /* --- 昇給パラメータ --- */
-  action ( features : instance, precheck ) RaiseSalary deep parameter ZA_RAISE_SALARY_001
+  action ( features : instance, precheck, authorization : global ) RaiseSalary deep parameter ZA_RAISE_SALARY_001
     result [1] $self
     { default function GetDefaultsForRaiseSalary; }
 
  /* --- 退職パラメータ --- */
- action ( features : instance, precheck ) Resign deep parameter ZA_RESIGN_001
+ action ( features : instance, precheck, authorization : update ) Resign deep parameter ZA_RESIGN_001
    result [1] $self;
 
   /* --- 項目制御 --- */
