@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DEVC>
-    <CTEXT>学習用</CTEXT>
+    <CTEXT>Test</CTEXT>
     <LANGUAGE>J</LANGUAGE>
     <MASTERLANG>J</MASTERLANG>
     <SRV_CHECK>X</SRV_CHECK>
